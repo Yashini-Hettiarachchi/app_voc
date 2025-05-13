@@ -27,6 +27,9 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
+# MongoDB Connection
+MONGODB_URL = "mongodb+srv://db:db@cluster0.is72t0x.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+
 # Model for prediction request
 class PredictionRequest(BaseModel):
     grade: int = Field(..., description="Current grade level")
