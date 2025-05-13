@@ -14,7 +14,7 @@ import certifi
 import json
 import random
 
-app = FastAPI(title="Vocabulary Learning API", 
+app = FastAPI(title="Vocabulary Learning API",
               description="API for vocabulary learning and prediction",
               version="1.0.0")
 
@@ -46,22 +46,28 @@ class VocabularyRecord(BaseModel):
 # In-memory storage for records (replace with database in production)
 vocabulary_records = []
 
-# Mock model for prediction (replace with actual model in production)
+# Mock model for prediction (matches yasiruperera.pythonanywhere.com/predict behavior)
 def predict_grade(grade, time_taken):
-    # Simple logic: if time_taken is less than threshold, increase grade
-    # otherwise keep same or decrease
-    if time_taken < 500:  # Fast completion
-        adjustment = min(1, 5 - grade)  # Don't go above grade 5
-        status = "increase"
-    elif time_taken > 1000:  # Slow completion
-        adjustment = max(-1, 1 - grade)  # Don't go below grade 1
-        status = "decrease"
-    else:  # Average completion
+    # Based on observed behavior of the API, it tends to be more restrictive
+    # and often returns an adjustment of -1
+
+    # For grade 1, keep it at 1 regardless of time
+    if grade == 1:
         adjustment = 0
-        status = "same"
-    
+        status = "success"
+    # For higher grades, tend to decrease the grade to be more conservative
+    elif grade > 1:
+        adjustment = -1
+        status = "success"
+    else:
+        adjustment = 0
+        status = "success"
+
     adjusted_grade = grade + adjustment
-    
+
+    # Ensure adjusted_grade is at least 1
+    adjusted_grade = max(1, adjusted_grade)
+
     return {
         "input_data": {
             "original_grade": grade,
@@ -77,7 +83,7 @@ def read_root():
     return {"message": "Welcome to the Vocabulary Learning API"}
 
 @app.get("/predict")
-def predict(grade: int = Query(..., description="Current grade level"), 
+def predict(grade: int = Query(..., description="Current grade level"),
             time_taken: int = Query(..., description="Time taken in seconds")):
     try:
         result = predict_grade(grade, time_taken)
@@ -108,36 +114,50 @@ def get_records():
 @app.get("/vocabulary-records/user/{user_id}")
 def get_user_records(user_id: str):
     user_records = [r for r in vocabulary_records if r["user_id"] == user_id]
-    
+
     # Calculate comparison with other users
     all_scores = [r["score"] for r in vocabulary_records]
     user_scores = [r["score"] for r in user_records]
-    
+
     avg_score = sum(all_scores) / len(all_scores) if all_scores else 0
     user_avg = sum(user_scores) / len(user_scores) if user_scores else 0
-    
+
     comparison = {
         "user_average": user_avg,
         "global_average": avg_score,
         "percentile": 50  # Mock percentile
     }
-    
+
     return {"records": user_records, "comparison": comparison}
 
 @app.post("/api/recognize-word-ocr")
 async def recognize_word(file: UploadFile = File(...)):
     try:
+        # Create uploads directory if it doesn't exist
+        os.makedirs("uploads", exist_ok=True)
+
+        # Save the uploaded file
+        file_path = f"uploads/signature.png"
+        with open(file_path, "wb") as buffer:
+            content = await file.read()
+            buffer.write(content)
+
         # In a real implementation, this would use OCR to recognize handwriting
-        # For now, we'll return a mock response
-        
-        # Mock list of possible recognized words
-        possible_words = ["apple", "banana", "cat", "dog", "elephant", 
-                         "fish", "giraffe", "house", "ice", "jacket"]
-        
+        # For now, we'll return a more intelligent mock response
+
+        # Mock list of common vocabulary words
+        possible_words = ["apple", "banana", "cat", "dog", "elephant",
+                         "fish", "giraffe", "house", "ice", "jacket",
+                         "hand", "blue", "chair", "pencil", "teacher",
+                         "school", "car", "book", "tree", "sun"]
+
+        # In a real implementation, we would use OCR to analyze the image
+        # For now, we'll just return a random word from our list
         recognized_text = random.choice(possible_words)
-        
+
         return {"recognized_text": recognized_text}
     except Exception as e:
+        print(f"Error in handwriting recognition: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
