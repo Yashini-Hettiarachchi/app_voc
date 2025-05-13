@@ -3,7 +3,13 @@ import 'package:flutter/material.dart';
 
 class ENVConfig {
   // Server Details
-  static const String serverUrl = 'http://localhost:8000';
+  // For local development use: 'http://localhost:8000'
+  // For production use your AWS Elastic Beanstalk URL: 'https://your-eb-environment.elasticbeanstalk.com'
+  // For Hostinger deployment: 'https://yourdomain.com/api'
+
+  // IMPORTANT: Update this URL with your actual AWS Elastic Beanstalk URL before deployment
+  static const String serverUrl = 'http://localhost:8000'; // Development
+  // static const String serverUrl = 'https://your-eb-environment.elasticbeanstalk.com';  // Production
 
   // API Route
   static const String loginRoute = '/api/login';
@@ -205,7 +211,7 @@ class ENVConfig {
       "description": "Learn about different modes of transportation",
       "difficulty": 1,
       "type": "normal",
-      "color": Color(0xFF2196F3),
+      "color": const Color(0xFF2196F3),
       "questions": [
         {
           "question": "🚗 I drive a ______ to work.",
@@ -265,7 +271,7 @@ class ENVConfig {
       "description": "Learn about natural phenomena and seasons",
       "difficulty": 1,
       "type": "normal",
-      "color": Color(0xFFFF5722),
+      "color": const Color(0xFFFF5722),
       "questions": [
         {
           "question": "☀️ The ______ shines during the day.",
@@ -325,7 +331,7 @@ class ENVConfig {
       "description": "Combine word recognition with basic arithmetic",
       "difficulty": 2,
       "type": "basic",
-      "color": Color(0xFF673AB7),
+      "color": const Color(0xFF673AB7),
       "questions": [
         {
           "question": "🔢 What is 2 + 2?",
@@ -385,7 +391,7 @@ class ENVConfig {
       "description": "Develop time-reading skills",
       "difficulty": 3,
       "type": "normal",
-      "color": Color(0xFF3F51B5),
+      "color": const Color(0xFF3F51B5),
       "questions": [
         {
           "question": "⏰ What time is it when the clock shows 12:00?",
@@ -465,7 +471,7 @@ class ENVConfig {
       "description": "Learn advanced vocabulary through professions and nature",
       "difficulty": 4,
       "type": "normal",
-      "color": Color(0xFF9C27B0),
+      "color": const Color(0xFF9C27B0),
       "questions": [
         {
           "question": "👩‍🏫 Who teaches students in a school?",
