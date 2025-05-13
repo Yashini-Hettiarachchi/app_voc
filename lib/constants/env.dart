@@ -131,68 +131,68 @@ class ENVConfig {
     },
     {
       "title": "Level 1: Visual Identification 👁️",
-      "description": "Identify objects from pictures",
+      "description": "Identify objects from pictures 🖼️",
       "difficulty": 0,
       "type": "basic",
       "color": Colors.orange,
       "background": "assets/backgrounds/level3.jpg",
       "questions": [
         {
-          "question": "What is this?",
+          "question": "👋 What body part is this?",
           "imagePath": "assets/images/body_parts/hand.png",
           "options": ["Hand", "Foot", "Ear", "Nose"],
           "answer": "Hand"
         },
         {
-          "question": "What color is this?",
+          "question": "🎨 What color is this?",
           "imagePath": "assets/images/colors/blue.png",
           "options": ["Blue", "Red", "Green", "Yellow"],
           "answer": "Blue"
         },
         {
-          "question": "What fruit is this?",
+          "question": "🍎 What fruit is this?",
           "imagePath": "assets/images/fruits/apple.png",
           "options": ["Apple", "Orange", "Banana", "Grape"],
           "answer": "Apple"
         },
         {
-          "question": "What is this object?",
+          "question": "🪑 What is this object?",
           "imagePath": "assets/images/objects/chair.png",
           "options": ["Chair", "Table", "Bed", "Desk"],
           "answer": "Chair"
         },
         {
-          "question": "What is this object?",
+          "question": "✏️ What is this object?",
           "imagePath": "assets/images/objects/pencil.png",
           "options": ["Pencil", "Eraser", "Ruler", "Scissors"],
           "answer": "Pencil"
         },
         {
-          "question": "What animal is this?",
+          "question": "🐕 What animal is this?",
           "imagePath": "assets/images/animals/dog.png",
           "options": ["Dog", "Cat", "Bird", "Fish"],
           "answer": "Dog"
         },
         {
-          "question": "What is this building?",
+          "question": "🏠 What is this building?",
           "imagePath": "assets/images/buildings/house.png",
           "options": ["House", "School", "Hospital", "Store"],
           "answer": "House"
         },
         {
-          "question": "What vehicle is this?",
+          "question": "🚗 What vehicle is this?",
           "imagePath": "assets/images/vehicles/car.png",
           "options": ["Car", "Bike", "Bus", "Train"],
           "answer": "Car"
         },
         {
-          "question": "What place is this?",
+          "question": "🏫 What place is this?",
           "imagePath": "assets/images/places/school.png",
           "options": ["School", "Hospital", "Park", "Beach"],
           "answer": "School"
         },
         {
-          "question": "What profession is this?",
+          "question": "👩‍🏫 What profession is this?",
           "imagePath": "assets/images/professions/teacher.png",
           "options": ["Teacher", "Doctor", "Farmer", "Driver"],
           "answer": "Teacher"

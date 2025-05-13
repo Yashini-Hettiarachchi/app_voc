@@ -69,12 +69,12 @@ class _ImageTestScreenState extends State<ImageTestScreen> {
     if (spokenAnswer.toLowerCase().trim() ==
         currentQuestion["answer"].toLowerCase().trim()) {
       setState(() {
-        statusMessage = "Correct!";
+        statusMessage = "🎉 Correct! Great job! 👍";
         correctAnswers++;
       });
     } else {
       setState(() {
-        statusMessage = "Incorrect. Try again!";
+        statusMessage = "❌ Oops! Try again! 💪";
       });
     }
   }
@@ -85,17 +85,33 @@ class _ImageTestScreenState extends State<ImageTestScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text("Activity Completed"),
+          title: const Text(
+            "🎊 Activity Completed! 🎊",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.purple,
+            ),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "Time Taken: ${Duration(seconds: timeTakenInSeconds).inMinutes}m ${timeTakenInSeconds % 60}s\n"
-                "Score: $correctAnswers/${widget.levelData["questions"].length}",
+                "⏱️ Time Taken: ${Duration(seconds: timeTakenInSeconds).inMinutes}m ${timeTakenInSeconds % 60}s\n"
+                "🏆 Score: $correctAnswers/${widget.levelData["questions"].length}",
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 16),
-              const Text("What would you like to do next?"),
+              const Text(
+                "✨ What would you like to do next? ✨",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
+                ),
+              ),
             ],
           ),
           actions: [
@@ -156,52 +172,22 @@ class _ImageTestScreenState extends State<ImageTestScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Display question
-              Text(
-                currentQuestion["question"],
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Display image
-              Center(
-                child: Image.network(
-                  currentQuestion["imagePath"],
-                  height: 200,
-                  fit: BoxFit.contain,
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Speech-to-text functionality
+              // Display question with emoji
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  GestureDetector(
-                    onTap: () {
-                      if (_isListening) {
-                        _stopListening();
-                      } else {
-                        _startListening();
-                      }
-                    },
-                    child: Icon(
-                      Icons.mic,
-                      color: _isListening ? Colors.red : Colors.blue,
-                      size: 30.0,
-                    ),
+                  const Icon(
+                    Icons.help_outline,
+                    color: Colors.purple,
+                    size: 24,
                   ),
+                  const SizedBox(width: 10),
                   Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(left: 16.0),
-                      child: Text(
-                        spokenAnswer.isNotEmpty
-                            ? "Spoken: $spokenAnswer"
-                            : "Speak your answer",
-                        style: const TextStyle(fontSize: 16),
+                    child: Text(
+                      currentQuestion["question"],
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.purple,
                       ),
                     ),
                   ),
@@ -209,8 +195,106 @@ class _ImageTestScreenState extends State<ImageTestScreen> {
               ),
               const SizedBox(height: 20),
 
-              // Answer options
-              const Text("Select an Option:", style: TextStyle(fontSize: 14)),
+              // Display image with decorative frame
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    border: Border.all(
+                      color: Colors.purple,
+                      width: 3,
+                    ),
+                    borderRadius: BorderRadius.circular(15),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.5),
+                        spreadRadius: 2,
+                        blurRadius: 5,
+                        offset: const Offset(0, 3),
+                      ),
+                    ],
+                  ),
+                  child: Image.network(
+                    currentQuestion["imagePath"],
+                    height: 200,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Speech-to-text functionality with emoji
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(15),
+                  border: Border.all(color: Colors.blue, width: 2),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        if (_isListening) {
+                          _stopListening();
+                        } else {
+                          _startListening();
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: _isListening ? Colors.red : Colors.blue,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.mic,
+                          color: Colors.white,
+                          size: 30.0,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(left: 16.0),
+                        child: Text(
+                          spokenAnswer.isNotEmpty
+                              ? "🗣️ You said: $spokenAnswer"
+                              : "🎤 Tap the microphone and speak your answer!",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: _isListening ? Colors.red : Colors.blue,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // Answer options with emojis
+              const Row(
+                children: [
+                  Icon(
+                    Icons.touch_app,
+                    color: Colors.orange,
+                    size: 24,
+                  ),
+                  SizedBox(width: 10),
+                  Text(
+                    "👇 Select an Option:",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.orange,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
               Wrap(
                 spacing: 10.0,
                 runSpacing: 10.0,
@@ -223,47 +307,124 @@ class _ImageTestScreenState extends State<ImageTestScreen> {
                         _checkAnswer();
                       });
                     },
-                    child: Text(option),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(
+                      option,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   );
                 }).toList(),
               ),
-              const SizedBox(height: 10),
-              const Text("Or", style: TextStyle(fontSize: 12)),
+              const SizedBox(height: 15),
+              const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    "✍️ Or write your answer below ✍️",
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green,
+                    ),
+                  ),
+                ],
+              ),
 
-              // Signature pad for input
-              ClipRRect(
-                borderRadius: BorderRadius.circular(15.0),
-                child: SizedBox(
-                  height: 200.0,
-                  child: SfSignaturePad(
-                    backgroundColor: Colors.grey[300],
+              // Signature pad for input with emoji
+              Container(
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.green, width: 2),
+                  borderRadius: BorderRadius.circular(15.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.3),
+                      spreadRadius: 1,
+                      blurRadius: 3,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(15.0),
+                  child: SizedBox(
+                    height: 150.0,
+                    child: SfSignaturePad(
+                      backgroundColor: Colors.grey[200],
+                      strokeColor: Colors.blue,
+                      minimumStrokeWidth: 3.0,
+                      maximumStrokeWidth: 6.0,
+                    ),
                   ),
                 ),
               ),
               const SizedBox(height: 20),
 
-              // Status message
-              Container(
+              // Status message with emoji
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
                 width: double.infinity,
                 padding: const EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
-                  color:
-                      statusMessage == "Correct!" ? Colors.green : Colors.red,
-                  borderRadius: BorderRadius.circular(10.0),
+                  color: statusMessage.contains("Correct")
+                      ? Colors.green
+                      : (statusMessage.isEmpty ? Colors.blue : Colors.red),
+                  borderRadius: BorderRadius.circular(15.0),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 1,
+                      blurRadius: 5,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
                 ),
-                child: Text(
-                  statusMessage.isNotEmpty
-                      ? statusMessage
-                      : "Provide an answer",
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
-                  textAlign: TextAlign.center,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      statusMessage.contains("Correct")
+                          ? Icons.check_circle
+                          : (statusMessage.isEmpty
+                              ? Icons.info_outline
+                              : Icons.error_outline),
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                    const SizedBox(width: 10),
+                    Flexible(
+                      child: Text(
+                        statusMessage.isNotEmpty
+                            ? statusMessage
+                            : "🤔 Waiting for your answer...",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 20),
 
-              // Next/Finish button
+              // Next/Finish button with emoji
               Center(
-                child: ElevatedButton(
+                child: ElevatedButton.icon(
                   onPressed: currentQuestionIndex < questions.length - 1
                       ? () {
                           setState(() {
@@ -273,9 +434,34 @@ class _ImageTestScreenState extends State<ImageTestScreen> {
                           });
                         }
                       : _showCompletionPopup,
-                  child: Text(currentQuestionIndex < questions.length - 1
-                      ? "Next"
-                      : "Finish"),
+                  icon: Icon(
+                    currentQuestionIndex < questions.length - 1
+                        ? Icons.arrow_forward
+                        : Icons.check_circle,
+                    color: Colors.white,
+                  ),
+                  label: Text(
+                    currentQuestionIndex < questions.length - 1
+                        ? "Next Question ➡️"
+                        : "Finish Activity 🎉",
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: currentQuestionIndex < questions.length - 1
+                        ? Colors.blue
+                        : Colors.green,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                  ),
                 ),
               ),
             ],
