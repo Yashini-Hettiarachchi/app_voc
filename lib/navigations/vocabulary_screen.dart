@@ -296,6 +296,40 @@ class _VocabularyScreenState extends State<VocabularyScreen> {
     });
   }
 
+  // Show visual feedback for correct/incorrect answers
+  void _showAnswerFeedback(bool isCorrect, String correctAnswer) {
+    final snackBar = SnackBar(
+      content: Row(
+        children: [
+          Icon(
+            isCorrect ? Icons.check_circle : Icons.cancel,
+            color: Colors.white,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              isCorrect
+                  ? "Correct! Great job! 🎉"
+                  : "Not quite right. The correct answer was: $correctAnswer",
+              style: const TextStyle(fontSize: 16),
+            ),
+          ),
+        ],
+      ),
+      backgroundColor: isCorrect ? Colors.green : Colors.red,
+      duration: const Duration(seconds: 2),
+      behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+      ),
+    );
+
+    // Show the snackbar if the widget is still mounted
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    }
+  }
+
   void _checkAnswer() {
     final currentQuestion = List<Map<String, dynamic>>.from(
         widget.levelData["questions"])[currentQuestionIndex];
@@ -309,23 +343,149 @@ class _VocabularyScreenState extends State<VocabularyScreen> {
 
     if (correct) {
       correctAnswers++;
+      // Show success feedback
+      setState(() {
+        statusMessage = "✅ Correct! Great job!";
+      });
+      // Show visual feedback
+      _showAnswerFeedback(true, currentQuestion["answer"]);
+      // Play success sound
+      // _playSuccessSound();
+    } else {
+      // Show error feedback
+      setState(() {
+        statusMessage =
+            "❌ Not quite right. The correct answer was: ${currentQuestion["answer"]}";
+      });
+      // Show visual feedback
+      _showAnswerFeedback(false, currentQuestion["answer"]);
+      // Play error sound
+      // _playErrorSound();
     }
 
-    // Move to next question immediately
-    final questions =
-        List<Map<String, dynamic>>.from(widget.levelData["questions"]);
-    if (currentQuestionIndex < questions.length - 1) {
-      setState(() {
-        currentQuestionIndex++;
-        spokenAnswer = "";
-        statusMessage = "";
-        _signaturePadKey.currentState?.clear();
-        // Reset the option to none for the next question
-        option = "none";
-      });
-    } else {
-      _showCompletionPopup();
-    }
+    // Add a delay before moving to the next question to show feedback
+    Future.delayed(const Duration(seconds: 2), () {
+      if (!mounted) return;
+
+      // Move to next question after showing feedback
+      final questions =
+          List<Map<String, dynamic>>.from(widget.levelData["questions"]);
+      if (currentQuestionIndex < questions.length - 1) {
+        setState(() {
+          currentQuestionIndex++;
+          spokenAnswer = "";
+          statusMessage = "";
+          _signaturePadKey.currentState?.clear();
+          // Reset the option to none for the next question
+          option = "none";
+        });
+      } else {
+        _showCompletionPopup();
+      }
+    });
+  }
+
+  void _showHelpDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Row(
+            children: [
+              const Icon(Icons.help_outline, color: Colors.orange, size: 30),
+              const SizedBox(width: 10),
+              const Text("How to Play", style: TextStyle(color: Colors.orange)),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHelpItem(
+                  icon: Icons.touch_app,
+                  title: "Multiple Choice",
+                  description:
+                      "Tap on one of the colored buttons to select your answer.",
+                ),
+                const Divider(),
+                _buildHelpItem(
+                  icon: Icons.mic,
+                  title: "Voice Input",
+                  description:
+                      "Tap the microphone card and speak your answer clearly.",
+                ),
+                const Divider(),
+                _buildHelpItem(
+                  icon: Icons.edit,
+                  title: "Handwriting",
+                  description:
+                      "Tap the writing card and write your answer on the pad.",
+                ),
+                const Divider(),
+                _buildHelpItem(
+                  icon: Icons.timer,
+                  title: "Time Matters",
+                  description: "Try to answer quickly for a better score!",
+                ),
+                const Divider(),
+                _buildHelpItem(
+                  icon: Icons.emoji_events,
+                  title: "Unlock Levels",
+                  description:
+                      "Get 7 or more correct answers to unlock the next level.",
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text("Got it!"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildHelpItem({
+    required IconData icon,
+    required String title,
+    required String description,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: Colors.purple, size: 24),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: Colors.purple,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  description,
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showCompletionPopup() {
@@ -497,18 +657,39 @@ class _VocabularyScreenState extends State<VocabularyScreen> {
     final currentQuestion = questions[currentQuestionIndex];
 
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => HomeScreen()),
-          );
-        },
-        backgroundColor: Color(0xff80ca84), // Set the background color
-        child: const Icon(
-          Icons.home,
-          color: Colors.white, // Optional: Change the icon color
-        ),
+      floatingActionButton: Column(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          // Help button
+          FloatingActionButton(
+            heroTag: "helpBtn",
+            onPressed: () {
+              _showHelpDialog();
+            },
+            backgroundColor: Colors.orange,
+            mini: true,
+            child: const Icon(
+              Icons.help_outline,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 10),
+          // Home button
+          FloatingActionButton(
+            heroTag: "homeBtn",
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => HomeScreen()),
+              );
+            },
+            backgroundColor: const Color(0xff80ca84),
+            child: const Icon(
+              Icons.home,
+              color: Colors.white,
+            ),
+          ),
+        ],
       ),
       backgroundColor: Colors.grey[200],
       body: SingleChildScrollView(
@@ -616,8 +797,8 @@ class _VocabularyScreenState extends State<VocabularyScreen> {
                   ),
                 ),
                 Container(
-                  padding: EdgeInsets.all(20),
-                  margin: EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(20),
+                  margin: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
                     color: Colors.white, // Set background color to white
                     borderRadius: BorderRadius.circular(12), // Rounded corners
@@ -626,12 +807,41 @@ class _VocabularyScreenState extends State<VocabularyScreen> {
                         color: Colors.grey.withOpacity(0.2), // Subtle shadow
                         spreadRadius: 3, // Spread radius of the shadow
                         blurRadius: 5, // Blur radius of the shadow
-                        offset: Offset(0, 3), // Position of the shadow
+                        offset: const Offset(0, 3), // Position of the shadow
                       ),
                     ],
                   ),
                   child: Column(
                     children: [
+                      // Progress indicator
+                      Row(
+                        children: [
+                          Text(
+                            "Question ${currentQuestionIndex + 1} of ${questions.length}",
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.purple,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: LinearProgressIndicator(
+                                value: (currentQuestionIndex + 1) /
+                                    questions.length,
+                                minHeight: 10,
+                                backgroundColor: Colors.grey[300],
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.purple,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
                       Text(
                         currentQuestion["question"]!,
                         style: const TextStyle(

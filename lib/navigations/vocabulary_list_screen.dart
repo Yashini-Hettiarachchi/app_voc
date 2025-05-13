@@ -36,7 +36,7 @@ class _VocabularyLevelsScreenState extends State<VocabularyLevelsScreen> {
     String instruction =
         "In this vocabulary activity, players will progress through multiple levels, each offering a range of difficulties, including Basic, Normal, Hard, Very Hard, and Challenging. Participants can engage with various question formats, including voice-based responses and signature pad input for written answers. Additionally, image-based activities require players to identify the correct name of an object from a selection of images. As the difficulty increases, words become more complex, testing both recognition and recall skills. Complete each challenge accurately to advance to the next level and improve your vocabulary proficiency!";
     try {
-      print("Audio Init");
+      debugPrint("Audio Init");
       await flutterTts.setLanguage("en-US");
       await flutterTts.setPitch(1.0); // Set pitch
       await flutterTts.setSpeechRate(0.5); // Set a moderate speech rate
@@ -44,8 +44,141 @@ class _VocabularyLevelsScreenState extends State<VocabularyLevelsScreen> {
           .awaitSpeakCompletion(true); // Ensure it waits for completion
       await flutterTts.speak(instruction); // Speak the provided text
     } catch (e) {
-      print("Error during TTS operation: $e");
+      debugPrint("Error during TTS operation: $e");
     }
+  }
+
+  void _showInteractiveTutorial() {
+    // Show a step-by-step tutorial for first-time users
+    final List<Map<String, dynamic>> tutorialSteps = [
+      {
+        "title": "Welcome to Vocabulary Adventure! 👋",
+        "content":
+            "This tutorial will guide you through how to use the vocabulary learning activities.",
+        "image": Icons.school,
+      },
+      {
+        "title": "Choosing Levels 🎮",
+        "content":
+            "Tap on any unlocked level card to start playing. Locked levels will be available as you improve!",
+        "image": Icons.lock_open,
+      },
+      {
+        "title": "Multiple Ways to Answer ✏️",
+        "content":
+            "You can answer questions by selecting options, speaking, or writing your answer.",
+        "image": Icons.mic,
+      },
+      {
+        "title": "Track Your Progress 📊",
+        "content":
+            "Check your previous records to see how you're improving over time.",
+        "image": Icons.bar_chart,
+      },
+      {
+        "title": "Ready to Start? 🚀",
+        "content": "Let's begin your vocabulary adventure!",
+        "image": Icons.play_circle_filled,
+      },
+    ];
+
+    int currentStep = 0;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              title: Row(
+                children: [
+                  Icon(
+                    tutorialSteps[currentStep]["image"],
+                    color: Colors.purple,
+                    size: 30,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      tutorialSteps[currentStep]["title"],
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.purple,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              content: Container(
+                height: 150,
+                width: double.maxFinite,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      tutorialSteps[currentStep]["content"],
+                      style: const TextStyle(fontSize: 16),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 20),
+                    LinearProgressIndicator(
+                      value: (currentStep + 1) / tutorialSteps.length,
+                      backgroundColor: Colors.grey[300],
+                      valueColor:
+                          const AlwaysStoppedAnimation<Color>(Colors.purple),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      "Step ${currentStep + 1} of ${tutorialSteps.length}",
+                      style: const TextStyle(
+                        color: Colors.grey,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                if (currentStep > 0)
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        currentStep--;
+                      });
+                    },
+                    child: const Text("Previous"),
+                  ),
+                TextButton(
+                  onPressed: () {
+                    if (currentStep < tutorialSteps.length - 1) {
+                      setState(() {
+                        currentStep++;
+                      });
+                    } else {
+                      // Save that tutorial has been shown
+                      SharedPreferences.getInstance().then((prefs) {
+                        prefs.setBool('tutorial_shown', true);
+                      });
+                      Navigator.of(context).pop();
+                    }
+                  },
+                  child: Text(
+                    currentStep < tutorialSteps.length - 1 ? "Next" : "Finish",
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   Future<void> _loadDifficulty() async {
@@ -66,6 +199,23 @@ class _VocabularyLevelsScreenState extends State<VocabularyLevelsScreen> {
   void initState() {
     super.initState();
     _loadDifficulty();
+
+    // Check if we should show the tutorial
+    _checkAndShowTutorial();
+  }
+
+  Future<void> _checkAndShowTutorial() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool tutorialShown = prefs.getBool('tutorial_shown') ?? false;
+
+    if (!tutorialShown && mounted) {
+      // Delay showing the tutorial to allow the screen to build
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          _showInteractiveTutorial();
+        }
+      });
+    }
   }
 
   @override
