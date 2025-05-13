@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:syncfusion_flutter_signaturepad/signaturepad.dart';
+import 'package:chat_app/navigations/vocablury_results_screen.dart';
 
 class ImageTestScreen extends StatefulWidget {
   final Map<String, dynamic> levelData;
@@ -65,7 +66,8 @@ class _ImageTestScreenState extends State<ImageTestScreen> {
 
   void _checkAnswer() {
     final currentQuestion = widget.levelData["questions"][currentQuestionIndex];
-    if (spokenAnswer.toLowerCase().trim() == currentQuestion["answer"].toLowerCase().trim()) {
+    if (spokenAnswer.toLowerCase().trim() ==
+        currentQuestion["answer"].toLowerCase().trim()) {
       setState(() {
         statusMessage = "Correct!";
         correctAnswers++;
@@ -84,9 +86,17 @@ class _ImageTestScreenState extends State<ImageTestScreen> {
       builder: (context) {
         return AlertDialog(
           title: const Text("Activity Completed"),
-          content: Text(
-            "Time Taken: ${Duration(seconds: timeTakenInSeconds).inMinutes}m ${timeTakenInSeconds % 60}s\n"
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Time Taken: ${Duration(seconds: timeTakenInSeconds).inMinutes}m ${timeTakenInSeconds % 60}s\n"
                 "Score: $correctAnswers/${widget.levelData["questions"].length}",
+              ),
+              const SizedBox(height: 16),
+              const Text("What would you like to do next?"),
+            ],
           ),
           actions: [
             TextButton(
@@ -94,7 +104,35 @@ class _ImageTestScreenState extends State<ImageTestScreen> {
                 Navigator.pop(context); // Dismiss the dialog
                 Navigator.pop(context); // Return to the previous screen
               },
-              child: const Text("OK"),
+              child: const Text("Return"),
+            ),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pop(context); // Dismiss the dialog
+
+                // Calculate difficulty level based on the level data
+                int difficulty = widget.levelData["difficulty"] ?? 1;
+
+                // Navigate to the results screen with auto-generate flag
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => VocabularyResultsScreen(
+                      rawScore: correctAnswers,
+                      timeTaken: timeTakenInSeconds,
+                      difficulty: difficulty,
+                      levelData: widget.levelData,
+                      autoGenerateReport: true, // Auto-generate the report
+                    ),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.picture_as_pdf_outlined),
+              label: const Text("Generate Report"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orange,
+                foregroundColor: Colors.white,
+              ),
             ),
           ],
         );
@@ -160,7 +198,9 @@ class _ImageTestScreenState extends State<ImageTestScreen> {
                     child: Padding(
                       padding: const EdgeInsets.only(left: 16.0),
                       child: Text(
-                        spokenAnswer.isNotEmpty ? "Spoken: $spokenAnswer" : "Speak your answer",
+                        spokenAnswer.isNotEmpty
+                            ? "Spoken: $spokenAnswer"
+                            : "Speak your answer",
                         style: const TextStyle(fontSize: 16),
                       ),
                     ),
@@ -174,7 +214,8 @@ class _ImageTestScreenState extends State<ImageTestScreen> {
               Wrap(
                 spacing: 10.0,
                 runSpacing: 10.0,
-                children: (currentQuestion["options"] as List<String>).map((option) {
+                children:
+                    (currentQuestion["options"] as List<String>).map((option) {
                   return ElevatedButton(
                     onPressed: () {
                       setState(() {
@@ -206,11 +247,14 @@ class _ImageTestScreenState extends State<ImageTestScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(16.0),
                 decoration: BoxDecoration(
-                  color: statusMessage == "Correct!" ? Colors.green : Colors.red,
+                  color:
+                      statusMessage == "Correct!" ? Colors.green : Colors.red,
                   borderRadius: BorderRadius.circular(10.0),
                 ),
                 child: Text(
-                  statusMessage.isNotEmpty ? statusMessage : "Provide an answer",
+                  statusMessage.isNotEmpty
+                      ? statusMessage
+                      : "Provide an answer",
                   style: const TextStyle(color: Colors.white, fontSize: 16),
                   textAlign: TextAlign.center,
                 ),
@@ -222,14 +266,16 @@ class _ImageTestScreenState extends State<ImageTestScreen> {
                 child: ElevatedButton(
                   onPressed: currentQuestionIndex < questions.length - 1
                       ? () {
-                    setState(() {
-                      currentQuestionIndex++;
-                      spokenAnswer = "";
-                      statusMessage = "";
-                    });
-                  }
+                          setState(() {
+                            currentQuestionIndex++;
+                            spokenAnswer = "";
+                            statusMessage = "";
+                          });
+                        }
                       : _showCompletionPopup,
-                  child: Text(currentQuestionIndex < questions.length - 1 ? "Next" : "Finish"),
+                  child: Text(currentQuestionIndex < questions.length - 1
+                      ? "Next"
+                      : "Finish"),
                 ),
               ),
             ],

@@ -21,12 +21,14 @@ class VocabularyResultsScreen extends StatefulWidget {
   final int timeTaken;
   final int difficulty;
   final Map<String, dynamic> levelData;
+  final bool autoGenerateReport;
 
   const VocabularyResultsScreen({
     required this.rawScore,
     required this.timeTaken,
     required this.difficulty,
     required this.levelData,
+    this.autoGenerateReport = false,
     Key? key,
   }) : super(key: key);
 
@@ -51,6 +53,16 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
   void initState() {
     super.initState();
     _calculateTotalScore();
+
+    // If autoGenerateReport is true, generate the report after a short delay
+    if (widget.autoGenerateReport) {
+      // Wait for the UI to build and data to be loaded
+      Future.delayed(const Duration(milliseconds: 800), () {
+        if (mounted) {
+          _generateAndShowPDF();
+        }
+      });
+    }
   }
 
   String _getGrade(int difficulty) {
@@ -309,21 +321,21 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
                     pw.TableRow(
                       children: [
                         pw.Padding(
-                            padding: const pw.EdgeInsets.all(4),
+                            padding: pw.EdgeInsets.all(4),
                             child: pw.Text(record['recorded_date'] != null
                                 ? _formatDate(
                                     record['recorded_date'].toString())
                                 : 'N/A')),
                         pw.Padding(
-                            padding: const pw.EdgeInsets.all(4),
+                            padding: pw.EdgeInsets.all(4),
                             child: pw.Text('${record['score']}%')),
                         pw.Padding(
-                            padding: const pw.EdgeInsets.all(4),
+                            padding: pw.EdgeInsets.all(4),
                             child: pw.Text(record['time_taken'] != null
                                 ? formatTime(record['time_taken'])
                                 : 'N/A')),
                         pw.Padding(
-                            padding: const pw.EdgeInsets.all(4),
+                            padding: pw.EdgeInsets.all(4),
                             child: pw.Text(record['difficulty'] != null
                                 ? _getGrade(record['difficulty'])
                                 : 'N/A')),
@@ -338,7 +350,7 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
             if (comparison.isNotEmpty) ...[
               pw.SizedBox(height: 16),
               pw.Text("Performance Comparison:",
-                  style: const pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
               pw.Text(
                   "Score Change: ${comparison['score_change'] ?? 'N/A'} (${comparison['score_difference'] ?? 'N/A'}%)"),
               pw.Text(
@@ -424,16 +436,18 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
       // Create mock records for demonstration
       records = [
         {
-          'recorded_date':
-              DateTime.now().subtract(Duration(days: 7)).toIso8601String(),
+          'recorded_date': DateTime.now()
+              .subtract(const Duration(days: 7))
+              .toIso8601String(),
           'score': totalScore - 5,
           'time_taken': widget.timeTaken + 30,
           'difficulty':
               widget.difficulty > 1 ? widget.difficulty - 1 : widget.difficulty,
         },
         {
-          'recorded_date':
-              DateTime.now().subtract(Duration(days: 14)).toIso8601String(),
+          'recorded_date': DateTime.now()
+              .subtract(const Duration(days: 14))
+              .toIso8601String(),
           'score': totalScore - 10,
           'time_taken': widget.timeTaken + 60,
           'difficulty':
@@ -452,6 +466,27 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
 
       isLoading = false;
     });
+  }
+
+  Future<void> _logout() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      await prefs.remove('accessToken');
+      await prefs.remove('refreshToken');
+      await prefs.remove('accessTokenExpireDate');
+      await prefs.remove('refreshTokenExpireDate');
+      await prefs.remove('userRole');
+      await prefs.remove('authEmployeeID');
+      await prefs.remove("vocabulary_difficulty");
+      await prefs.remove("difference_difficulty");
+
+      // Check if widget is still mounted before using context
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/landing');
+      }
+    } catch (e) {
+      debugPrint('Error during logout: $e');
+    }
   }
 
   Future<void> _openPDFFromMemory(Uint8List pdfInMemory) async {
@@ -477,7 +512,7 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: FloatingActionButton(
-        backgroundColor: Color(0xff80ca84),
+        backgroundColor: const Color(0xff80ca84),
         onPressed: () {
           Navigator.push(
               context,
@@ -498,13 +533,13 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
         child: Column(
           children: [
             Padding(
-              padding: EdgeInsets.only(top: 5, left: 10, right: 10),
+              padding: const EdgeInsets.only(top: 5, left: 10, right: 10),
               child: AppBar(
                 backgroundColor: Colors.transparent,
                 elevation: 0,
                 title: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+                  children: const [
                     Text('Vocabulary Activity Summary',
                         style: TextStyle(fontSize: 20, color: Colors.black)),
                     SizedBox(height: 4),
@@ -517,9 +552,9 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
                 ),
                 titleSpacing: 0,
                 leading: Container(
-                  margin: EdgeInsets.only(left: 10),
+                  margin: const EdgeInsets.only(left: 10),
                   decoration: BoxDecoration(
-                    color: Color(0xff80ca84),
+                    color: const Color(0xff80ca84),
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
@@ -529,7 +564,7 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
                     ],
                   ),
                   child: IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.white),
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
                     onPressed: () {
                       Navigator.pop(context);
                     },
@@ -537,9 +572,9 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
                 ),
                 actions: [
                   Container(
-                    margin: EdgeInsets.only(right: 10),
+                    margin: const EdgeInsets.only(right: 10),
                     decoration: BoxDecoration(
-                      color: Color(0xff80ca84),
+                      color: const Color(0xff80ca84),
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
@@ -549,27 +584,9 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
                       ],
                     ),
                     child: IconButton(
-                      icon: Icon(Icons.logout, color: Colors.white),
-                      onPressed: () async {
-                        // Store context before async gap
-                        final currentContext = context;
-
-                        SharedPreferences prefs =
-                            await SharedPreferences.getInstance();
-                        await prefs.remove('accessToken');
-                        await prefs.remove('refreshToken');
-                        await prefs.remove('accessTokenExpireDate');
-                        await prefs.remove('refreshTokenExpireDate');
-                        await prefs.remove('userRole');
-                        await prefs.remove('authEmployeeID');
-                        await prefs.remove("vocabulary_difficulty");
-                        await prefs.remove("difference_difficulty");
-
-                        // Check if widget is still mounted before using context
-                        if (mounted) {
-                          Navigator.pushReplacementNamed(
-                              currentContext, '/landing');
-                        }
+                      icon: const Icon(Icons.logout, color: Colors.white),
+                      onPressed: () {
+                        _logout();
                       },
                     ),
                   ),
@@ -602,7 +619,7 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
                               style: const TextStyle(
                                   fontSize: 20, color: Colors.black54)),
                           const SizedBox(height: 8.0),
-                          Text('Raw Score: ${widget.rawScore}',
+                          Text('Raw Score: ${widget.rawScore}/10',
                               style: const TextStyle(
                                   fontSize: 20, color: Colors.black87)),
                           const SizedBox(height: 8.0),
@@ -630,9 +647,17 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
                           label: const Text("Suggested Info"),
                         ),
                         ElevatedButton.icon(
-                          onPressed: _generateAndShowPDF,
-                          icon: const Icon(Icons.picture_as_pdf_outlined),
-                          label: const Text("Generate Report"),
+                          onPressed: isLoading ? null : _generateAndShowPDF,
+                          icon: isLoading
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Icon(Icons.picture_as_pdf_outlined),
+                          label: Text(
+                              isLoading ? "Generating..." : "Generate Report"),
                         ),
                       ],
                     ),

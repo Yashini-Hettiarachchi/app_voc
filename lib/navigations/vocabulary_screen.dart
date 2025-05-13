@@ -405,11 +405,61 @@ class _VocabularyScreenState extends State<VocabularyScreen> {
               SizedBox(height: 16.0),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                child: Column(
                   children: [
-                    ElevatedButton(
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => VocabularyResultsScreen(
+                                  rawScore: correctAnswers,
+                                  timeTaken: timeTakenInSeconds,
+                                  difficulty: difficulty,
+                                  levelData: widget.levelData,
+                                ),
+                              ),
+                            );
+                          },
+                          child: Text('View Results'),
+                        ),
+                        if (correctAnswers >=
+                            7) // Only show next level button if score is good
+                          ElevatedButton(
+                            onPressed: () async {
+                              // Save current progress
+                              SharedPreferences prefs =
+                                  await SharedPreferences.getInstance();
+                              int currentDifficulty =
+                                  prefs.getInt('vocabulary_difficulty') ?? 1;
+
+                              // Update difficulty if needed
+                              if (currentDifficulty <= difficulty) {
+                                await prefs.setInt(
+                                    'vocabulary_difficulty', difficulty + 1);
+                              }
+
+                              // Navigate to next level
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      VocabularyLevelsScreen(),
+                                ),
+                              );
+                            },
+                            child: Text('Next Level'),
+                          ),
+                      ],
+                    ),
+                    SizedBox(height: 12.0),
+                    // Generate Report button
+                    ElevatedButton.icon(
                       onPressed: () {
+                        // First navigate to results screen with auto-generate flag
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -418,38 +468,18 @@ class _VocabularyScreenState extends State<VocabularyScreen> {
                               timeTaken: timeTakenInSeconds,
                               difficulty: difficulty,
                               levelData: widget.levelData,
+                              autoGenerateReport: true, // Add this flag
                             ),
                           ),
                         );
                       },
-                      child: Text('View Results'),
-                    ),
-                    if (correctAnswers >=
-                        7) // Only show next level button if score is good
-                      ElevatedButton(
-                        onPressed: () async {
-                          // Save current progress
-                          SharedPreferences prefs =
-                              await SharedPreferences.getInstance();
-                          int currentDifficulty =
-                              prefs.getInt('vocabulary_difficulty') ?? 1;
-
-                          // Update difficulty if needed
-                          if (currentDifficulty <= difficulty) {
-                            await prefs.setInt(
-                                'vocabulary_difficulty', difficulty + 1);
-                          }
-
-                          // Navigate to next level
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => VocabularyLevelsScreen(),
-                            ),
-                          );
-                        },
-                        child: Text('Next Level'),
+                      icon: const Icon(Icons.picture_as_pdf_outlined),
+                      label: const Text("Generate Report"),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        foregroundColor: Colors.white,
                       ),
+                    ),
                   ],
                 ),
               ),
