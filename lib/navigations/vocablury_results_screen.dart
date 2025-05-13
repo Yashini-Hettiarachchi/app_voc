@@ -277,7 +277,7 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
         // Show a child-friendly message that data was saved
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            const SnackBar(
               content: Row(
                 children: [
                   Icon(Icons.save, color: Colors.white),
@@ -398,15 +398,15 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
 
   String getMotivationalMessage() {
     if (totalScore >= 95) {
-      return "Masterful Work! Incredible precision and speed! You're a true master of this game.";
+      return "🌟 AMAZING WORK! 🌟 You're a WORD SUPERSTAR! Your brain is super powerful!";
     } else if (totalScore >= 75) {
-      return "Excellent Performance! Fantastic job honing your skills.";
+      return "🎉 FANTASTIC JOB! 🎉 You're getting really good at words! Keep it up!";
     } else if (totalScore >= 60) {
-      return "Great Job! Keep practicing for even better results.";
+      return "👍 GREAT EFFORT! 👍 You're learning so many words! Practice makes perfect!";
     } else if (totalScore >= 30) {
       return "Good Effort! You’re improving with each try.";
     } else {
-      return "Keep Trying! Every attempt brings you closer to success.";
+      return "🌱 KEEP GROWING! 🌱 Every time you practice, your brain gets stronger!";
     }
   }
 
