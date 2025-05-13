@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 import 'package:chat_app/constants/env.dart';
 import 'package:chat_app/navigations/suggested_activities_screen.dart';
 import 'package:chat_app/navigations/vocabulary_list_screen.dart';
@@ -13,6 +14,7 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 import 'package:open_file/open_file.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
+import 'package:intl/intl.dart';
 
 class VocabularyResultsScreen extends StatefulWidget {
   final int rawScore;
@@ -227,7 +229,22 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
     }
   }
 
+  String _formatDate(String dateString) {
+    try {
+      final DateTime date = DateTime.parse(dateString);
+      final DateFormat formatter = DateFormat('MMM dd, yyyy');
+      return formatter.format(date);
+    } catch (e) {
+      debugPrint('Error formatting date: $e');
+      return dateString;
+    }
+  }
+
   Future<void> _generateAndShowPDF() async {
+    setState(() {
+      isLoading = true;
+    });
+
     await _fetchVocabularyRecords();
 
     final pdf = pw.Document();
@@ -243,7 +260,7 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
             pw.SizedBox(height: 16),
             pw.Text("Total Score: $totalScore%"),
             pw.Text("Time Taken: ${formatTime(widget.timeTaken)}"),
-            pw.Text("Raw Score: ${widget.rawScore}"),
+            pw.Text("Raw Score: ${widget.rawScore}/10"),
             pw.Text("Grade: ${_getGrade(widget.difficulty)}"),
             pw.SizedBox(height: 16),
             pw.Text("Motivational Message:",
@@ -278,12 +295,12 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
                                   fontWeight: pw.FontWeight.bold))),
                       pw.Padding(
                           padding: pw.EdgeInsets.all(4),
-                          child: pw.Text('Time Taken',
+                          child: pw.Text('Time',
                               style: pw.TextStyle(
                                   fontWeight: pw.FontWeight.bold))),
                       pw.Padding(
                           padding: pw.EdgeInsets.all(4),
-                          child: pw.Text('Difficulty',
+                          child: pw.Text('Level',
                               style: pw.TextStyle(
                                   fontWeight: pw.FontWeight.bold))),
                     ],
@@ -292,17 +309,24 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
                     pw.TableRow(
                       children: [
                         pw.Padding(
-                            padding: pw.EdgeInsets.all(4),
-                            child: pw.Text(record['recorded_date'].toString())),
+                            padding: const pw.EdgeInsets.all(4),
+                            child: pw.Text(record['recorded_date'] != null
+                                ? _formatDate(
+                                    record['recorded_date'].toString())
+                                : 'N/A')),
                         pw.Padding(
-                            padding: pw.EdgeInsets.all(4),
+                            padding: const pw.EdgeInsets.all(4),
                             child: pw.Text('${record['score']}%')),
                         pw.Padding(
-                            padding: pw.EdgeInsets.all(4),
-                            child: pw.Text(record['time_taken'].toString())),
+                            padding: const pw.EdgeInsets.all(4),
+                            child: pw.Text(record['time_taken'] != null
+                                ? formatTime(record['time_taken'])
+                                : 'N/A')),
                         pw.Padding(
-                            padding: pw.EdgeInsets.all(4),
-                            child: pw.Text(record['difficulty'].toString())),
+                            padding: const pw.EdgeInsets.all(4),
+                            child: pw.Text(record['difficulty'] != null
+                                ? _getGrade(record['difficulty'])
+                                : 'N/A')),
                       ],
                     ),
                   ],
@@ -314,7 +338,7 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
             if (comparison.isNotEmpty) ...[
               pw.SizedBox(height: 16),
               pw.Text("Performance Comparison:",
-                  style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+                  style: const pw.TextStyle(fontWeight: pw.FontWeight.bold)),
               pw.Text(
                   "Score Change: ${comparison['score_change'] ?? 'N/A'} (${comparison['score_difference'] ?? 'N/A'}%)"),
               pw.Text(
@@ -329,6 +353,10 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
 
     final pdfInMemory = await pdf.save();
 
+    setState(() {
+      isLoading = false;
+    });
+
     // Don't store the result, just call the method
     if (mounted) {
       await _openPDFFromMemory(pdfInMemory);
@@ -340,25 +368,47 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String username = prefs.getString('authEmployeeID') ?? "sampleUser";
 
+      debugPrint('Fetching vocabulary records for user: $username');
+      debugPrint(
+          'URL: ${ENVConfig.serverUrl}/vocabulary-records/user/$username');
+
       final response = await http
           .get(
         Uri.parse('${ENVConfig.serverUrl}/vocabulary-records/user/$username'),
       )
           .timeout(const Duration(seconds: 5), onTimeout: () {
+        debugPrint('Request timed out');
         // Return a fake response instead of throwing an exception
         return http.Response('{"error": "timeout"}', 408);
       });
 
+      debugPrint('Response status code: ${response.statusCode}');
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
+        debugPrint(
+            'Received data: ${data.toString().substring(0, min(100, data.toString().length))}...');
+
         if (mounted) {
           setState(() {
-            records = data['records'];
+            records = data['records'] ?? [];
             comparison = data['comparison'] ?? {};
             isLoading = false;
           });
         }
+      } else if (response.statusCode == 404) {
+        debugPrint('No records found for user: $username');
+        // If no records found, use empty records but don't show mock data
+        if (mounted) {
+          setState(() {
+            records = [];
+            comparison = {};
+            isLoading = false;
+          });
+        }
       } else {
+        debugPrint('Server returned error: ${response.statusCode}');
+        debugPrint('Response body: ${response.body}');
         // Use mock data if server returns error
         _useMockData();
       }

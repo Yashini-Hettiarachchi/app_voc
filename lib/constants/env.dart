@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 class ENVConfig {
   // Server Details
-  static const String serverUrl = 'http://localhost:8080';
+  static const String serverUrl = 'http://localhost:8000';
 
   // API Route
   static const String loginRoute = '/api/login';
