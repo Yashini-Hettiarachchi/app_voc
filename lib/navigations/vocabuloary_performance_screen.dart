@@ -12,7 +12,8 @@ class VocabularyPerformanceScreen extends StatefulWidget {
       _VocabularyPerformanceScreenState();
 }
 
-class _VocabularyPerformanceScreenState extends State<VocabularyPerformanceScreen> {
+class _VocabularyPerformanceScreenState
+    extends State<VocabularyPerformanceScreen> {
   bool isLoading = true;
   List<dynamic> records = [];
   List<FlSpot> scorePoints = [];
@@ -52,10 +53,25 @@ class _VocabularyPerformanceScreenState extends State<VocabularyPerformanceScree
   List<FlSpot> _generateScorePoints(List<dynamic> records) {
     List<FlSpot> points = [];
     for (int i = 0; i < records.length; i++) {
-      double score = records[i]['score'].toDouble();
+      double score = _sanitizeScore(records[i]['score']);
       points.add(FlSpot(i.toDouble(), score));
     }
     return points;
+  }
+
+  double _sanitizeScore(dynamic score) {
+    if (score == null) return 0.0;
+    try {
+      double parsedScore =
+          (score is num) ? score.toDouble() : double.parse(score.toString());
+      if (parsedScore.isNaN || parsedScore.isInfinite) {
+        return 0.0;
+      }
+      return parsedScore;
+    } catch (e) {
+      print('Error parsing score: $e');
+      return 0.0;
+    }
   }
 
   @override
@@ -65,110 +81,111 @@ class _VocabularyPerformanceScreenState extends State<VocabularyPerformanceScree
       body: isLoading
           ? Center(child: CircularProgressIndicator())
           : Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: EdgeInsets.only(top: 5),
-              child: AppBar(
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                title: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Vocabulary Performance',
-                      style: TextStyle(fontSize: 20, color: Colors.black),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'Track Your Progress',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.normal,
-                        color: Colors.black54,
+              padding: EdgeInsets.symmetric(horizontal: 16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.only(top: 5),
+                    child: AppBar(
+                      backgroundColor: Colors.transparent,
+                      elevation: 0,
+                      title: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Vocabulary Performance',
+                            style: TextStyle(fontSize: 20, color: Colors.black),
+                          ),
+                          SizedBox(height: 4),
+                          Text(
+                            'Track Your Progress',
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.normal,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ],
+                      ),
+                      titleSpacing: 0,
+                      leading: Container(
+                        margin: EdgeInsets.only(left: 10),
+                        decoration: BoxDecoration(
+                          color: Color(0xff80ca84),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.orangeAccent.withOpacity(0.6),
+                              blurRadius: 10,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                        child: IconButton(
+                          icon: Icon(Icons.arrow_back, color: Colors.white),
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                        ),
                       ),
                     ),
-                  ],
-                ),
-                titleSpacing: 0,
-                leading: Container(
-                  margin: EdgeInsets.only(left: 10),
-                  decoration: BoxDecoration(
-                    color: Color(0xff80ca84),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.orangeAccent.withOpacity(0.6),
-                        blurRadius: 10,
-                        spreadRadius: 2,
+                  ),
+                  SizedBox(height: 20),
+                  Text("Score Progress Over Time",
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  SizedBox(height: 16),
+                  Expanded(
+                    child: LineChart(
+                      LineChartData(
+                        gridData: FlGridData(show: true),
+                        titlesData: FlTitlesData(
+                          leftTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: 40,
+                              getTitlesWidget: (value, meta) {
+                                return Text(value.toInt().toString(),
+                                    style: TextStyle(fontSize: 12));
+                              },
+                            ),
+                          ),
+                          bottomTitles: AxisTitles(
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              interval: 1,
+                              getTitlesWidget: (value, meta) {
+                                if (value.toInt() < records.length) {
+                                  String dateStr =
+                                      records[value.toInt()]['recorded_date'];
+                                  DateTime date = DateTime.parse(dateStr);
+                                  return Text(
+                                    DateFormat("MMM dd").format(date),
+                                    style: TextStyle(fontSize: 10),
+                                  );
+                                }
+                                return SizedBox.shrink();
+                              },
+                            ),
+                          ),
+                        ),
+                        borderData: FlBorderData(show: true),
+                        lineBarsData: [
+                          LineChartBarData(
+                            spots: scorePoints,
+                            isCurved: true,
+                            color: Colors.blue,
+                            barWidth: 3,
+                            dotData: FlDotData(show: true),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                  child: IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                ),
+                ],
               ),
             ),
-            SizedBox(height: 20),
-            Text("Score Progress Over Time",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            SizedBox(height: 16),
-            Expanded(
-              child: LineChart(
-                LineChartData(
-                  gridData: FlGridData(show: true),
-                  titlesData: FlTitlesData(
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 40,
-                        getTitlesWidget: (value, meta) {
-                          return Text(value.toInt().toString(),
-                              style: TextStyle(fontSize: 12));
-                        },
-                      ),
-                    ),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        interval: 1,
-                        getTitlesWidget: (value, meta) {
-                          if (value.toInt() < records.length) {
-                            String dateStr = records[value.toInt()]
-                            ['recorded_date'];
-                            DateTime date = DateTime.parse(dateStr);
-                            return Text(
-                              DateFormat("MMM dd").format(date),
-                              style: TextStyle(fontSize: 10),
-                            );
-                          }
-                          return SizedBox.shrink();
-                        },
-                      ),
-                    ),
-                  ),
-                  borderData: FlBorderData(show: true),
-                  lineBarsData: [
-                    LineChartBarData(
-                      spots: scorePoints,
-                      isCurved: true,
-                      color: Colors.blue,
-                      barWidth: 3,
-                      dotData: FlDotData(show: true),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

@@ -41,6 +41,31 @@ class ENVConfig {
           "question": "Which word means 'a tool for writing'?",
           "options": ["Pencil", "Eraser", "Ruler", "Scissors"],
           "answer": "Pencil"
+        },
+        {
+          "question": "Which word means 'an animal that barks'?",
+          "options": ["Dog", "Cat", "Bird", "Fish"],
+          "answer": "Dog"
+        },
+        {
+          "question": "Which word means 'a place where you live'?",
+          "options": ["House", "School", "Park", "Store"],
+          "answer": "House"
+        },
+        {
+          "question": "Which word means 'a vehicle with four wheels'?",
+          "options": ["Car", "Bike", "Boat", "Plane"],
+          "answer": "Car"
+        },
+        {
+          "question": "Which word means 'a place where you learn'?",
+          "options": ["School", "Hospital", "Park", "Beach"],
+          "answer": "School"
+        },
+        {
+          "question": "Which word means 'a person who teaches'?",
+          "options": ["Teacher", "Doctor", "Farmer", "Driver"],
+          "answer": "Teacher"
         }
       ]
     },
@@ -76,6 +101,31 @@ class ENVConfig {
           "question": "I write with a ___.",
           "options": ["pencil", "eraser", "ruler", "scissors"],
           "answer": "pencil"
+        },
+        {
+          "question": "My pet ___ barks at strangers.",
+          "options": ["dog", "cat", "bird", "fish"],
+          "answer": "dog"
+        },
+        {
+          "question": "I live in a ___ with my family.",
+          "options": ["house", "school", "park", "store"],
+          "answer": "house"
+        },
+        {
+          "question": "My father drives a ___ to work.",
+          "options": ["car", "bike", "boat", "plane"],
+          "answer": "car"
+        },
+        {
+          "question": "I learn new things at ___.",
+          "options": ["school", "hospital", "park", "beach"],
+          "answer": "school"
+        },
+        {
+          "question": "The ___ teaches us math and science.",
+          "options": ["teacher", "doctor", "farmer", "driver"],
+          "answer": "teacher"
         }
       ]
     },
@@ -116,6 +166,36 @@ class ENVConfig {
           "imagePath": "assets/images/objects/pencil.png",
           "options": ["Pencil", "Eraser", "Ruler", "Scissors"],
           "answer": "Pencil"
+        },
+        {
+          "question": "What animal is this?",
+          "imagePath": "assets/images/animals/dog.png",
+          "options": ["Dog", "Cat", "Bird", "Fish"],
+          "answer": "Dog"
+        },
+        {
+          "question": "What is this building?",
+          "imagePath": "assets/images/buildings/house.png",
+          "options": ["House", "School", "Hospital", "Store"],
+          "answer": "House"
+        },
+        {
+          "question": "What vehicle is this?",
+          "imagePath": "assets/images/vehicles/car.png",
+          "options": ["Car", "Bike", "Bus", "Train"],
+          "answer": "Car"
+        },
+        {
+          "question": "What place is this?",
+          "imagePath": "assets/images/places/school.png",
+          "options": ["School", "Hospital", "Park", "Beach"],
+          "answer": "School"
+        },
+        {
+          "question": "What profession is this?",
+          "imagePath": "assets/images/professions/teacher.png",
+          "options": ["Teacher", "Doctor", "Farmer", "Driver"],
+          "answer": "Teacher"
         }
       ]
     },
