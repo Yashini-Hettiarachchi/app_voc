@@ -45,6 +45,9 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
   late int totalScore = 0;
   List<dynamic> records = [];
   bool isLoading = true;
+  bool isPrinting = false;
+  File? pdfFile;
+  List<FlSpot> scorePoints = [];
   Map<String, dynamic> comparison = {
     'score_change': 'N/A',
     'score_difference': 0,
@@ -52,6 +55,9 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
     'time_difference': 0,
     'difficulty_change': 'N/A',
   };
+
+  // Personalized suggestions based on performance
+  List<String> personalizedSuggestions = [];
 
   @override
   void initState() {
