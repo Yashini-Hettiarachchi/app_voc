@@ -10,7 +10,7 @@ class ENVConfig {
 
   static final List<Map<String, dynamic>> levels = [
     {
-      "title": "Level 1: Word Matching",
+      "title": "Level 1: Word Matching 🔤",
       "description": "Match words with their meanings",
       "difficulty": 0,
       "type": "basic",
@@ -70,7 +70,7 @@ class ENVConfig {
       ]
     },
     {
-      "title": "Level 1: Filling Blanks",
+      "title": "Level 1: Filling Blanks ✏️",
       "description": "Complete the sentences with correct words",
       "difficulty": 0,
       "type": "basic",
@@ -130,7 +130,7 @@ class ENVConfig {
       ]
     },
     {
-      "title": "Level 1: Visual Identification",
+      "title": "Level 1: Visual Identification 👁️",
       "description": "Identify objects from pictures",
       "difficulty": 0,
       "type": "basic",
@@ -200,7 +200,7 @@ class ENVConfig {
       ]
     },
     {
-      "title": "Level 3: Transportation",
+      "title": "Level 3: Transportation 🚗",
       "cardPack": "Themes: Vehicles & Travel",
       "description": "Learn about different modes of transportation",
       "difficulty": 1,
@@ -260,7 +260,7 @@ class ENVConfig {
       ]
     },
     {
-      "title": "Level 4: Nature & Environment",
+      "title": "Level 4: Nature & Environment 🌿",
       "cardPack": "Themes: Weather & Seasons",
       "description": "Learn about natural phenomena and seasons",
       "difficulty": 1,
@@ -320,7 +320,7 @@ class ENVConfig {
       ]
     },
     {
-      "title": "Level 5: Calculation Improvement",
+      "title": "Level 5: Calculation Improvement 🧮",
       "cardPack": "Themes: Numbers & Math",
       "description": "Combine word recognition with basic arithmetic",
       "difficulty": 2,
@@ -380,7 +380,7 @@ class ENVConfig {
       ]
     },
     {
-      "title": "Level 6: Time Identification",
+      "title": "Level 6: Time Identification ⏰",
       "cardPack": "Themes: Time & Clocks",
       "description": "Develop time-reading skills",
       "difficulty": 3,
@@ -460,7 +460,7 @@ class ENVConfig {
       ]
     },
     {
-      "title": "Level 7: Advanced Vocabulary",
+      "title": "Level 7: Advanced Vocabulary 📚",
       "cardPack": "Themes: Professions & Nature",
       "description": "Learn advanced vocabulary through professions and nature",
       "difficulty": 4,
