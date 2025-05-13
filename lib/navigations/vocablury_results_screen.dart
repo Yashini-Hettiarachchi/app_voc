@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'package:chat_app/constants/env.dart';
 import 'package:chat_app/navigations/suggested_activities_screen.dart';
 import 'package:chat_app/navigations/vocabulary_list_screen.dart';
@@ -15,6 +17,8 @@ import 'dart:io';
 import 'package:open_file/open_file.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:intl/intl.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:share_plus/share_plus.dart';
 
 class VocabularyResultsScreen extends StatefulWidget {
   final int rawScore;
