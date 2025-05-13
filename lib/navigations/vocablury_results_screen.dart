@@ -75,6 +75,79 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
     }
   }
 
+  // Generate personalized suggestions based on performance
+  void _generatePersonalizedSuggestions() {
+    // Base suggestions that apply to everyone
+    List<String> suggestions = [
+      "Encourage daily vocabulary practice.",
+      "Use flashcards to reinforce learning.",
+      "Reward achievements to motivate consistent effort.",
+    ];
+
+    // Add score-based suggestions
+    if (totalScore < 40) {
+      suggestions
+          .add("Focus on basic vocabulary with simple words and pictures.");
+      suggestions.add("Use repetition and frequent practice sessions.");
+      suggestions.add(
+          "Try multi-sensory learning approaches (visual, auditory, tactile).");
+    } else if (totalScore < 70) {
+      suggestions
+          .add("Introduce word categories and themes to organize learning.");
+      suggestions.add("Practice using new words in simple sentences.");
+      suggestions.add("Use games that reinforce vocabulary in a fun way.");
+    } else {
+      suggestions.add("Challenge with more complex vocabulary and synonyms.");
+      suggestions.add(
+          "Encourage using new words in creative writing or storytelling.");
+      suggestions.add("Discuss word origins and relationships between words.");
+    }
+
+    // Add time-based suggestions
+    if (widget.timeTaken > 300) {
+      // More than 5 minutes
+      suggestions.add("Work on improving focus during vocabulary activities.");
+      suggestions
+          .add("Break learning sessions into shorter, more frequent periods.");
+    }
+
+    // Add difficulty-based suggestions
+    if (widget.difficulty <= 2) {
+      suggestions.add("Gradually increase difficulty as confidence builds.");
+    } else if (widget.difficulty >= 4) {
+      suggestions.add(
+          "Maintain challenge while ensuring success to keep motivation high.");
+    }
+
+    personalizedSuggestions = suggestions;
+  }
+
+  // Generate score points for the chart
+  List<FlSpot> _generateScorePoints(List<dynamic> records) {
+    List<FlSpot> points = [];
+    for (int i = 0; i < records.length; i++) {
+      double score = _sanitizeScore(records[i]['score']);
+      points.add(FlSpot(i.toDouble(), score));
+    }
+    return points;
+  }
+
+  // Helper to safely convert score to double
+  double _sanitizeScore(dynamic score) {
+    if (score == null) return 0.0;
+    try {
+      double parsedScore =
+          (score is num) ? score.toDouble() : double.parse(score.toString());
+      if (parsedScore.isNaN || parsedScore.isInfinite) {
+        return 0.0;
+      }
+      return parsedScore;
+    } catch (e) {
+      debugPrint('Error parsing score: $e');
+      return 0.0;
+    }
+  }
+
   String _getGrade(int difficulty) {
     switch (difficulty) {
       case 0:
@@ -262,6 +335,42 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
     }
   }
 
+  // Create a simple performance summary for the PDF
+  pw.Widget _buildPerformanceSummary() {
+    if (records.isEmpty) {
+      return pw.Container();
+    }
+
+    // Create a simple text-based summary
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text("Performance Summary:",
+            style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+        pw.SizedBox(height: 8),
+        pw.Text(
+            "Your vocabulary skills have ${comparison['score_change'] ?? 'changed'} over time."),
+        pw.Text(
+            "Your most recent score: ${records.isNotEmpty ? '${records[0]['score']}%' : 'N/A'}"),
+        pw.Text("Your average score: ${_calculateAverageScore()}%"),
+        pw.Text("Your current level: ${_getGrade(widget.difficulty)}"),
+        pw.SizedBox(height: 8),
+        pw.Text("Keep practicing to improve your vocabulary skills!"),
+      ],
+    );
+  }
+
+  // Calculate average score from records
+  String _calculateAverageScore() {
+    if (records.isEmpty) return "0";
+
+    double sum = 0;
+    for (var record in records) {
+      sum += _sanitizeScore(record['score']);
+    }
+    return (sum / records.length).toStringAsFixed(1);
+  }
+
   Future<void> _generateAndShowPDF() async {
     setState(() {
       isLoading = true;
@@ -289,14 +398,22 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
                 style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
             pw.Text(getMotivationalMessage()),
             pw.SizedBox(height: 16),
-            pw.Text("Suggestions for Parents:",
+
+            // Performance Summary
+            if (records.isNotEmpty) ...[
+              _buildPerformanceSummary(),
+              pw.SizedBox(height: 16),
+            ],
+
+            // Personalized Suggestions
+            pw.Text("Personalized Suggestions:",
                 style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
-            pw.Text("- Encourage daily vocabulary practice."),
-            pw.Text("- Use flashcards to reinforce learning."),
-            pw.Text("- Reward achievements to motivate consistent effort."),
-            pw.Text("- Discuss new words during family activities."),
-            pw.Text("- Set small, achievable learning goals."),
+            pw.SizedBox(height: 8),
+            for (var suggestion in personalizedSuggestions)
+              pw.Text("- $suggestion"),
             pw.SizedBox(height: 16),
+
+            // Previous Records
             pw.Text("Previous Records:",
                 style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
             if (records.isNotEmpty) ...[
@@ -375,6 +492,11 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
 
     final pdfInMemory = await pdf.save();
 
+    // Save the PDF to a file for sharing
+    final directory = await getTemporaryDirectory();
+    pdfFile = File('${directory.path}/vocabulary_results.pdf');
+    await pdfFile!.writeAsBytes(pdfInMemory);
+
     setState(() {
       isLoading = false;
     });
@@ -415,6 +537,12 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
           setState(() {
             records = data['records'] ?? [];
             comparison = data['comparison'] ?? {};
+
+            // Generate score points for chart
+            if (records.isNotEmpty) {
+              scorePoints = _generateScorePoints(records);
+            }
+
             isLoading = false;
           });
         }
@@ -434,6 +562,9 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
         // Use mock data if server returns error
         _useMockData();
       }
+
+      // Generate personalized suggestions
+      _generatePersonalizedSuggestions();
     } catch (e) {
       debugPrint('Error fetching vocabulary records: $e');
       // Use mock data if server connection fails
@@ -462,6 +593,15 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
           'time_taken': widget.timeTaken + 60,
           'difficulty':
               widget.difficulty > 1 ? widget.difficulty - 1 : widget.difficulty,
+        },
+        {
+          'recorded_date': DateTime.now()
+              .subtract(const Duration(days: 21))
+              .toIso8601String(),
+          'score': totalScore - 15,
+          'time_taken': widget.timeTaken + 90,
+          'difficulty':
+              widget.difficulty > 1 ? widget.difficulty - 1 : widget.difficulty,
         }
       ];
 
@@ -474,8 +614,14 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
         'difficulty_change': 'Increased',
       };
 
+      // Generate score points for chart
+      scorePoints = _generateScorePoints(records);
+
       isLoading = false;
     });
+
+    // Generate personalized suggestions
+    _generatePersonalizedSuggestions();
   }
 
   Future<void> _logout() async {
@@ -505,8 +651,87 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => PDFView(filePath: pdfFile.path),
+          builder: (context) => Scaffold(
+            appBar: AppBar(
+              title: const Text('Vocabulary Report'),
+              backgroundColor: const Color(0xff80ca84),
+              actions: [
+                // Print button
+                IconButton(
+                  icon: const Icon(Icons.print),
+                  onPressed: () {
+                    _showPrintOptions(pdfFile);
+                  },
+                ),
+                // Download/Share button
+                IconButton(
+                  icon: const Icon(Icons.share),
+                  onPressed: () {
+                    _sharePDF(pdfFile);
+                  },
+                ),
+              ],
+            ),
+            body: PDFView(
+              filePath: pdfFile.path,
+              enableSwipe: true,
+              swipeHorizontal: true,
+              autoSpacing: false,
+              pageFling: false,
+              pageSnap: true,
+              defaultPage: 0,
+              fitPolicy: FitPolicy.BOTH,
+              preventLinkNavigation: false,
+            ),
+          ),
         ),
+      );
+    }
+  }
+
+  // Show print options dialog
+  void _showPrintOptions(File pdfFile) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Print Options'),
+          content: const Text('Would you like to print or save this report?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                // This would ideally connect to a printer
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                      content: Text(
+                          'Printing functionality would be implemented here')),
+                );
+              },
+              child: const Text('Print'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                _sharePDF(pdfFile);
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Share PDF file
+  void _sharePDF(File pdfFile) {
+    try {
+      Share.shareXFiles([XFile(pdfFile.path)],
+          text: 'Vocabulary Performance Report');
+    } catch (e) {
+      debugPrint('Error sharing PDF: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error sharing PDF: $e')),
       );
     }
   }
