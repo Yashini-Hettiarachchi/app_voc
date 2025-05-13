@@ -506,30 +506,58 @@ class _VocabularyLevelsScreenState extends State<VocabularyLevelsScreen> {
                             ),
                           ),
                           const Spacer(),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment
-                                .spaceEvenly, // Space out buttons evenly
+                          Column(
                             children: [
-                              ElevatedButton.icon(
-                                onPressed: () async {
-                                  File pdfFile = await _loadPDFfromAssets(
-                                      "assets/instructions/vocabulary booklet.pdf");
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  ElevatedButton.icon(
+                                    onPressed: () async {
+                                      File pdfFile = await _loadPDFfromAssets(
+                                          "assets/instructions/vocabulary booklet.pdf");
 
-                                  // Check if widget is still mounted before navigating
-                                  if (mounted) {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => PDFView(
-                                          filePath: pdfFile.path,
+                                      // Check if widget is still mounted before navigating
+                                      if (mounted) {
+                                        Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => PDFView(
+                                              filePath: pdfFile.path,
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                    icon: const Icon(Icons.menu_book),
+                                    label: const Text("Instructions PDF"),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.blue[700],
+                                      foregroundColor: Colors.white,
+                                    ),
+                                  ),
+                                  ElevatedButton.icon(
+                                    onPressed: () {
+                                      _playInstructions();
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                              'Playing audio instructions...'),
+                                          duration: Duration(seconds: 2),
                                         ),
-                                      ),
-                                    );
-                                  }
-                                },
-                                icon: const Icon(Icons.voice_chat),
-                                label: const Text("Instructions"),
+                                      );
+                                    },
+                                    icon: const Icon(Icons.volume_up),
+                                    label: const Text("Audio Instructions"),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.green[700],
+                                      foregroundColor: Colors.white,
+                                    ),
+                                  ),
+                                ],
                               ),
+                              const SizedBox(height: 8),
                               ElevatedButton.icon(
                                 onPressed: () {
                                   Navigator.push(
@@ -541,6 +569,11 @@ class _VocabularyLevelsScreenState extends State<VocabularyLevelsScreen> {
                                 },
                                 icon: const Icon(Icons.history),
                                 label: const Text("Previous Records"),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.orange[700],
+                                  foregroundColor: Colors.white,
+                                  minimumSize: const Size(double.infinity, 36),
+                                ),
                               ),
                             ],
                           ),

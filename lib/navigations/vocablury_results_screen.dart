@@ -75,48 +75,52 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
     }
   }
 
-  // Generate personalized suggestions based on performance
+  // Generate personalized suggestions based on performance with child-friendly language and emojis
   void _generatePersonalizedSuggestions() {
-    // Base suggestions that apply to everyone
+    // Base suggestions that apply to everyone - child-friendly with emojis
     List<String> suggestions = [
-      "Encourage daily vocabulary practice.",
-      "Use flashcards to reinforce learning.",
-      "Reward achievements to motivate consistent effort.",
+      "🌟 Try to practice words every day - it's like watering a plant to help it grow!",
+      "🎴 Make fun flashcards with pictures to help remember new words!",
+      "🏆 Give yourself a high-five or sticker when you learn new words!",
     ];
 
-    // Add score-based suggestions
+    // Add score-based suggestions with child-friendly language
     if (totalScore < 40) {
-      suggestions
-          .add("Focus on basic vocabulary with simple words and pictures.");
-      suggestions.add("Use repetition and frequent practice sessions.");
       suggestions.add(
-          "Try multi-sensory learning approaches (visual, auditory, tactile).");
+          "📚 Start with simple words that have pictures - it's easier to remember!");
+      suggestions.add(
+          "🔄 Practice the same words many times - repetition helps your brain remember!");
+      suggestions.add(
+          "👀👂👆 Try seeing, hearing, and touching things while learning their names!");
     } else if (totalScore < 70) {
-      suggestions
-          .add("Introduce word categories and themes to organize learning.");
-      suggestions.add("Practice using new words in simple sentences.");
-      suggestions.add("Use games that reinforce vocabulary in a fun way.");
-    } else {
-      suggestions.add("Challenge with more complex vocabulary and synonyms.");
       suggestions.add(
-          "Encourage using new words in creative writing or storytelling.");
-      suggestions.add("Discuss word origins and relationships between words.");
+          "🗂️ Group similar words together - like all animals or all colors!");
+      suggestions.add("🗣️ Try using new words in short, fun sentences!");
+      suggestions.add(
+          "🎮 Play word games with friends or family - learning can be fun!");
+    } else {
+      suggestions.add(
+          "🚀 You're doing great! Try learning some bigger, more exciting words!");
+      suggestions.add("📝 Make up stories using your new words - be creative!");
+      suggestions
+          .add("🔍 Find out where words come from - some have cool histories!");
     }
 
-    // Add time-based suggestions
+    // Add time-based suggestions with child-friendly language
     if (widget.timeTaken > 300) {
       // More than 5 minutes
-      suggestions.add("Work on improving focus during vocabulary activities.");
-      suggestions
-          .add("Break learning sessions into shorter, more frequent periods.");
+      suggestions.add("⏱️ Try to focus a little more - maybe set a fun timer!");
+      suggestions.add(
+          "⏲️ Short practice times work best - like 10-minute word adventures!");
     }
 
-    // Add difficulty-based suggestions
+    // Add difficulty-based suggestions with child-friendly language
     if (widget.difficulty <= 2) {
-      suggestions.add("Gradually increase difficulty as confidence builds.");
+      suggestions.add(
+          "🪜 You're doing great! Soon you'll be ready for slightly harder words!");
     } else if (widget.difficulty >= 4) {
       suggestions.add(
-          "Maintain challenge while ensuring success to keep motivation high.");
+          "🌈 Keep challenging yourself with new words, but remember to have fun!");
     }
 
     personalizedSuggestions = suggestions;
@@ -172,6 +176,11 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       String user = prefs.getString('authEmployeeID') ?? "sampleUser";
 
+      // Generate personalized suggestions if not already generated
+      if (personalizedSuggestions.isEmpty) {
+        _generatePersonalizedSuggestions();
+      }
+
       // Try to save to server with timeout
       try {
         final response = await http
@@ -189,13 +198,37 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
                 'type': widget.levelData['type'] ?? 'basic',
                 'time_taken': widget.timeTaken,
                 'recorded_date': DateTime.now().toIso8601String(),
-                'suggestions': []
+                'suggestions':
+                    personalizedSuggestions // Include child-friendly suggestions
               }),
             )
             .timeout(const Duration(seconds: 3));
 
         if (response.statusCode == 200) {
-          debugPrint("Score saved successfully to server.");
+          debugPrint("Score and suggestions saved successfully to server.");
+
+          // Create a directory to save suggestions locally as well
+          try {
+            Directory dir = await getApplicationDocumentsDirectory();
+            String path = '${dir.path}/vocabulary_suggestions';
+            Directory suggestionsDir = Directory(path);
+            if (!await suggestionsDir.exists()) {
+              await suggestionsDir.create(recursive: true);
+            }
+
+            // Save suggestions to a file with timestamp
+            String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+            File suggestionsFile = File('$path/suggestions_$timestamp.json');
+            await suggestionsFile.writeAsString(jsonEncode({
+              'score': score,
+              'suggestions': personalizedSuggestions,
+              'date': DateTime.now().toIso8601String()
+            }));
+            debugPrint(
+                "Suggestions saved locally to file: ${suggestionsFile.path}");
+          } catch (fileError) {
+            debugPrint("Error saving suggestions to file: $fileError");
+          }
         } else {
           debugPrint("Server returned error: ${response.statusCode}");
           // Save locally as fallback
@@ -213,13 +246,18 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
 
   void _saveScoreLocally(int score, int difficulty, String user) {
     try {
+      // Generate personalized suggestions if not already generated
+      if (personalizedSuggestions.isEmpty) {
+        _generatePersonalizedSuggestions();
+      }
+
       // Save to SharedPreferences as a fallback
       SharedPreferences.getInstance().then((prefs) {
         // Get existing records or create new list
         List<String> savedRecords =
             prefs.getStringList('local_vocabulary_records') ?? [];
 
-        // Add new record
+        // Add new record with suggestions
         savedRecords.add(jsonEncode({
           'score': score,
           'difficulty': difficulty,
@@ -228,11 +266,59 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
           'type': widget.levelData['type'] ?? 'basic',
           'time_taken': widget.timeTaken,
           'recorded_date': DateTime.now().toIso8601String(),
+          'suggestions':
+              personalizedSuggestions, // Include child-friendly suggestions
         }));
 
         // Save back to SharedPreferences
         prefs.setStringList('local_vocabulary_records', savedRecords);
-        debugPrint("Score saved locally as fallback.");
+        debugPrint("Score and suggestions saved locally as fallback.");
+
+        // Show a child-friendly message that data was saved
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.save, color: Colors.white),
+                  SizedBox(width: 10),
+                  Text('Your progress has been saved! 🎉',
+                      style: TextStyle(fontSize: 16)),
+                ],
+              ),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      });
+
+      // Also try to save to a file in the app's documents directory
+      getApplicationDocumentsDirectory().then((dir) async {
+        try {
+          String path = '${dir.path}/vocabulary_records';
+          Directory recordsDir = Directory(path);
+          if (!await recordsDir.exists()) {
+            await recordsDir.create(recursive: true);
+          }
+
+          // Save record to a file with timestamp
+          String timestamp = DateTime.now().millisecondsSinceEpoch.toString();
+          File recordFile = File('$path/record_$timestamp.json');
+          await recordFile.writeAsString(jsonEncode({
+            'score': score,
+            'difficulty': difficulty,
+            'user': user,
+            'activity': widget.levelData['title'] ?? 'Vocabulary Activity',
+            'type': widget.levelData['type'] ?? 'basic',
+            'time_taken': widget.timeTaken,
+            'recorded_date': DateTime.now().toIso8601String(),
+            'suggestions': personalizedSuggestions,
+          }));
+          debugPrint("Record saved to file: ${recordFile.path}");
+        } catch (fileError) {
+          debugPrint("Error saving record to file: $fileError");
+        }
       });
     } catch (e) {
       debugPrint("Error saving score locally: $e");
@@ -879,7 +965,15 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
                             );
                           },
                           icon: const Icon(Icons.lightbulb),
-                          label: const Text("Suggested Info"),
+                          label: const Text("Helpful Tips 💡"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.purple[200],
+                            foregroundColor: Colors.purple[900],
+                            elevation: 5,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
                         ),
                         ElevatedButton.icon(
                           onPressed: isLoading ? null : _generateAndShowPDF,
@@ -891,8 +985,17 @@ class _VocabularyResultsScreenState extends State<VocabularyResultsScreen> {
                                       CircularProgressIndicator(strokeWidth: 2),
                                 )
                               : const Icon(Icons.picture_as_pdf_outlined),
-                          label: Text(
-                              isLoading ? "Generating..." : "Generate Report"),
+                          label: Text(isLoading
+                              ? "Making your report..."
+                              : "Make a Cool Report 📊"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue[200],
+                            foregroundColor: Colors.blue[900],
+                            elevation: 5,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
                         ),
                       ],
                     ),
