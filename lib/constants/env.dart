@@ -8,7 +8,10 @@ class ENVConfig {
   // For Hostinger deployment: 'https://yourdomain.com/api'
 
   // IMPORTANT: Update this URL with your actual AWS Elastic Beanstalk URL before deployment
-  static const String serverUrl = 'http://localhost:8000'; // Development
+  static const bool useMockData =
+      false; // Set to false when backend is available
+  static const String serverUrl = 'https://9535-103-21-164-181.ngrok-free.app'; // Updated Backend URL
+  // static const String serverUrl = 'http://localhost:8000'; // Development
   // static const String serverUrl = 'https://your-eb-environment.elasticbeanstalk.com';  // Production
 
   // API Route
